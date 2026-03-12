@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cemetery Sprawl — Chicago</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet plugins -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <h1>Cemetery Sprawl</h1>
+    <p class="subtitle">Quantifying Urban Land Locked in Perpetual Non-Use — Chicago, IL</p>
+  </div>
+
+  <nav id="layer-controls">
+    <h2>Map Layers</h2>
+
+    <label class="layer-toggle active" id="toggle-cemeteries">
+      <span class="swatch" style="background:#2d6a4f;opacity:0.8;"></span>
+      <input type="checkbox" checked id="cb-cemeteries" /> Cemeteries
+    </label>
+
+    <label class="layer-toggle" id="toggle-transit">
+      <span class="swatch" style="background:#e63946;"></span>
+      <input type="checkbox" id="cb-transit" /> CTA Rail Stations
+    </label>
+
+    <label class="layer-toggle" id="toggle-race">
+      <span class="swatch" style="background:#457b9d;opacity:0.6;"></span>
+      <input type="checkbox" id="cb-race" /> % Black Population (Census)
+    </label>
+
+    <label class="layer-toggle" id="toggle-community">
+      <span class="swatch" style="background:transparent;border:2px solid #999;"></span>
+      <input type="checkbox" id="cb-community" /> Community Areas
+    </label>
+  </nav>
+
+  <div id="stats-panel">
+    <h2>City-Wide Stats</h2>
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat"><span class="stat-val" id="stat-count">—</span><span class="stat-label">Cemeteries</span></div>
+      <div class="stat"><span class="stat-val" id="stat-acres">—</span><span class="stat-label">Total Acres</span></div>
+      <div class="stat"><span class="stat-val" id="stat-units">—</span><span class="stat-label">Est. Housing Units*</span></div>
+      <div class="stat"><span class="stat-val" id="stat-transit">—</span><span class="stat-label">Near CTA Rail</span></div>
+    </div>
+    <p class="footnote">*Theoretical estimate at avg Chicago residential density (~40 units/acre). This is a thought experiment to contextualize scale — not a development proposal.</p>
+  </div>
+
+  <div id="info-panel">
+    <h2>Selected Cemetery</h2>
+    <div id="info-content">
+      <p class="muted">Click a cemetery on the map to see details.</p>
+    </div>
+  </div>
+
+  <div id="holc-note">
+    <h2>HOLC Redlining Layer</h2>
+    <p>Historical HOLC redlining boundaries are available from the <a href="https://dsl.richmond.edu/panorama/redlining/" target="_blank" rel="noopener">Mapping Inequality project</a> (University of Richmond). Download the Chicago GeoJSON and add it to <code>data/holc_chicago.geojson</code> to enable this layer.</p>
+    <p>Chicago's redlining history is central to this analysis: majority-Black neighborhoods on the South and West Sides received "D" (Hazardous) grades, contributing to disinvestment and the destruction of Black-owned cemeteries.</p>
+  </div>
+
+  <footer>
+    <p>Data: <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> · <a href="https://data.cityofchicago.org" target="_blank">City of Chicago</a> · <a href="https://www.census.gov" target="_blank">US Census ACS 2022</a></p>
+    <p>Analysis &amp; Map by <a href="https://github.com/kalchikee" target="_blank">kalchikee</a></p>
+  </footer>
+</aside>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Legend -->
+<div id="legend">
+  <h3>% Black Population</h3>
+  <div class="legend-row"><span class="legend-box" style="background:#f0f4f8"></span>&lt; 10%</div>
+  <div class="legend-row"><span class="legend-box" style="background:#a8c8e8"></span>10–30%</div>
+  <div class="legend-row"><span class="legend-box" style="background:#5a9fd4"></span>30–50%</div>
+  <div class="legend-row"><span class="legend-box" style="background:#1d6fa4"></span>50–70%</div>
+  <div class="legend-row"><span class="legend-box" style="background:#0a3d62"></span>&gt; 70%</div>
+  <hr />
+  <div class="legend-row"><span class="legend-box" style="background:#2d6a4f;opacity:0.8;"></span>Cemetery</div>
+  <div class="legend-row"><span class="legend-circle" style="background:#e63946;"></span>CTA Rail</div>
+</div>
+
+<script src="js/map.js"></script>
+</body>
+</html>
