@@ -24,19 +24,25 @@ let transitLayer  = null;
 let raceLayer     = null;
 let communityLayer= null;
 
-/* ── Color helpers ───────────────────────────────────────── */
-function raceColor(pct) {
-  if (pct == null) return '#1e2535';
-  if (pct < 10)  return '#f0f4f8';
-  if (pct < 30)  return '#a8c8e8';
-  if (pct < 50)  return '#5a9fd4';
-  if (pct < 70)  return '#1d6fa4';
-  return '#0a3d62';
-}
+/* ── Census metric config ────────────────────────────────── */
+// Each metric defines its own bin thresholds; the color ramp is shared so
+// users can compare patterns across metrics without re-reading the legend.
+const CENSUS_RAMP = ['#f0f4f8', '#a8c8e8', '#5a9fd4', '#1d6fa4', '#0a3d62'];
+const CENSUS_METRICS = {
+  pct_black:    { label: '% Black Population',    unit: '%', bins: [10, 30, 50, 70],       colors: CENSUS_RAMP },
+  pct_white:    { label: '% White Population',    unit: '%', bins: [10, 30, 50, 70],       colors: CENSUS_RAMP },
+  pct_hispanic: { label: '% Hispanic Population', unit: '%', bins: [10, 30, 50, 70],       colors: CENSUS_RAMP },
+  total_pop:    { label: 'Total Population',      unit: '',  bins: [1000, 3000, 5000, 8000], colors: CENSUS_RAMP },
+};
+let currentMetric = 'pct_black';
 
-function raceTextColor(pct) {
-  if (pct == null || pct < 30) return '#111';
-  return '#fff';
+function metricColor(value, metricName) {
+  if (value == null || !Number.isFinite(value)) return '#1e2535';
+  const { bins, colors } = CENSUS_METRICS[metricName];
+  for (let i = 0; i < bins.length; i++) {
+    if (value < bins[i]) return colors[i];
+  }
+  return colors[bins.length];
 }
 
 /* ── Format helpers ──────────────────────────────────────── */
@@ -120,7 +126,7 @@ Promise.all([
 
     raceLayer = L.geoJSON(geo, {
       style: feature => ({
-        fillColor: raceColor(feature.properties.pct_black),
+        fillColor: metricColor(feature.properties[currentMetric], currentMetric),
         fillOpacity: 0.55,
         color: '#2a3345',
         weight: 0.4,
@@ -140,8 +146,52 @@ Promise.all([
     raceLayer.bringToBack();
     if (cemeteryLayer) cemeteryLayer.bringToFront();
     document.getElementById('legend').classList.add('visible');
+    renderLegend();
   })
   .catch(e => console.warn('Census tracts not loaded:', e));
+
+/* ── Legend + metric switching ───────────────────────────── */
+function renderLegend() {
+  const m = CENSUS_METRICS[currentMetric];
+  const el = document.getElementById('legend-census');
+  if (!el) return;
+  const fmtBin = v => (m.unit === '%' ? `${v}%` : fmt(v));
+  const rows = [`<h3>${m.label}</h3>`];
+  rows.push(`<div class="legend-row"><span class="legend-box" style="background:${m.colors[0]}"></span>&lt; ${fmtBin(m.bins[0])}</div>`);
+  for (let i = 0; i < m.bins.length - 1; i++) {
+    rows.push(`<div class="legend-row"><span class="legend-box" style="background:${m.colors[i + 1]}"></span>${fmtBin(m.bins[i])}–${fmtBin(m.bins[i + 1])}</div>`);
+  }
+  rows.push(`<div class="legend-row"><span class="legend-box" style="background:${m.colors[m.colors.length - 1]}"></span>&gt; ${fmtBin(m.bins[m.bins.length - 1])}</div>`);
+  el.innerHTML = rows.join('');
+}
+
+function setMetric(name) {
+  if (!CENSUS_METRICS[name]) return;
+  currentMetric = name;
+  document.querySelectorAll('.metric-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.metric === name)
+  );
+  if (raceLayer) {
+    raceLayer.setStyle(f => ({
+      fillColor: metricColor(f.properties[name], name),
+      fillOpacity: 0.55,
+      color: '#2a3345',
+      weight: 0.4,
+    }));
+  }
+  renderLegend();
+}
+
+document.querySelectorAll('.metric-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    // Clicking a metric while Census is off turns it on — users expect
+    // selecting a variable to make that variable visible.
+    const cb = document.getElementById('cb-race');
+    if (!cb.checked) document.getElementById('toggle-race').click();
+    setMetric(btn.dataset.metric);
+  });
+});
 
 /* ── Load Community Areas ────────────────────────────────── */
 fetch('data/community_areas.geojson')
@@ -339,20 +389,25 @@ document.getElementById('toggle-transit').addEventListener('click', () => {
   else            { map.removeLayer(transitLayer); document.getElementById('toggle-transit').classList.remove('active'); }
 });
 
-document.getElementById('toggle-race').addEventListener('click', () => {
+document.getElementById('toggle-race').addEventListener('click', e => {
+  // Ignore clicks bubbling up from metric pill buttons — they manage their own state.
+  if (e.target.closest('#metric-selector')) return;
   const cb = document.getElementById('cb-race');
   cb.checked = !cb.checked;
   if (!raceLayer) return;
+  const selector = document.getElementById('metric-selector');
   if (cb.checked) {
     raceLayer.addTo(map);
     raceLayer.bringToBack();
     if (cemeteryLayer) cemeteryLayer.bringToFront();
     document.getElementById('toggle-race').classList.add('active');
     document.getElementById('legend').classList.add('visible');
+    selector.classList.add('active');
   } else {
     map.removeLayer(raceLayer);
     document.getElementById('toggle-race').classList.remove('active');
     document.getElementById('legend').classList.remove('visible');
+    selector.classList.remove('active');
   }
 });
 

@@ -42,6 +42,12 @@
       <span class="swatch" style="background:#457b9d;opacity:0.6;"></span>
       <input type="checkbox" id="cb-race" checked /> Census
     </label>
+    <div id="metric-selector" class="active">
+      <button type="button" class="metric-btn active" data-metric="pct_black">% Black</button>
+      <button type="button" class="metric-btn" data-metric="pct_white">% White</button>
+      <button type="button" class="metric-btn" data-metric="pct_hispanic">% Hispanic</button>
+      <button type="button" class="metric-btn" data-metric="total_pop">Population</button>
+    </div>
 
     <label class="layer-toggle" id="toggle-community">
       <span class="swatch" style="background:transparent;border:2px solid #999;"></span>
@@ -91,14 +97,9 @@
 
 <!-- Legend -->
 <div id="legend">
-  <h3>% Black Population</h3>
-  <div class="legend-row"><span class="legend-box" style="background:#f0f4f8"></span>&lt; 10%</div>
-  <div class="legend-row"><span class="legend-box" style="background:#a8c8e8"></span>10–30%</div>
-  <div class="legend-row"><span class="legend-box" style="background:#5a9fd4"></span>30–50%</div>
-  <div class="legend-row"><span class="legend-box" style="background:#1d6fa4"></span>50–70%</div>
-  <div class="legend-row"><span class="legend-box" style="background:#0a3d62"></span>&gt; 70%</div>
+  <div id="legend-census"></div>
   <hr />
-  <div class="legend-row"><span class="legend-box" style="background:#2d6a4f;opacity:0.8;"></span>Cemetery</div>
+  <div class="legend-row"><span class="legend-box" style="background:#74c69d;opacity:0.9;"></span>Cemetery</div>
   <div class="legend-row"><span class="legend-circle" style="background:#e63946;"></span>CTA Rail</div>
 </div>
 

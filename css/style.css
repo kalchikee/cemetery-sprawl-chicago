@@ -121,6 +121,42 @@ body {
   border: 1px solid rgba(255,255,255,0.15);
 }
 
+/* ── Metric Selector (Census sub-control) ─────────────────── */
+#metric-selector {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 18px 10px 40px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+#metric-selector.active { display: flex; }
+
+.metric-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.metric-btn:hover {
+  color: var(--text);
+  border-color: var(--green-light);
+}
+
+.metric-btn.active {
+  background: var(--green-light);
+  color: #0e1117;
+  border-color: var(--green-light);
+  font-weight: 600;
+}
+
 /* ── Stats Panel ──────────────────────────────────────────── */
 #stats-panel {
   padding: 0 0 4px;
