@@ -38,9 +38,9 @@
       <input type="checkbox" id="cb-transit" /> CTA Rail Stations
     </label>
 
-    <label class="layer-toggle" id="toggle-race">
+    <label class="layer-toggle active" id="toggle-race">
       <span class="swatch" style="background:#457b9d;opacity:0.6;"></span>
-      <input type="checkbox" id="cb-race" /> Census
+      <input type="checkbox" id="cb-race" checked /> Census
     </label>
 
     <label class="layer-toggle" id="toggle-community">
@@ -58,6 +58,13 @@
       <div class="stat"><span class="stat-val" id="stat-transit">—</span><span class="stat-label">Near CTA Rail</span></div>
     </div>
     <p class="footnote">*Theoretical estimate at avg Chicago residential density (~40 units/acre). This is a thought experiment to contextualize scale — not a development proposal.</p>
+  </div>
+
+  <div id="top-cemeteries-panel">
+    <h2>Largest Cemeteries</h2>
+    <ol id="top-cemeteries-list">
+      <li class="muted">Loading…</li>
+    </ol>
   </div>
 
   <div id="info-panel">

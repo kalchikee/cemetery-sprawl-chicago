@@ -166,6 +166,68 @@ body {
   line-height: 1.5;
 }
 
+/* ── Top Cemeteries Panel ─────────────────────────────────── */
+#top-cemeteries-panel {
+  border-bottom: 1px solid var(--border);
+}
+
+#top-cemeteries-list {
+  list-style: none;
+  padding: 4px 0 8px;
+  margin: 0;
+  counter-reset: cem;
+}
+
+#top-cemeteries-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 18px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: background 0.15s, color 0.15s;
+  color: var(--text);
+}
+
+#top-cemeteries-list li.muted {
+  color: var(--text-muted);
+  cursor: default;
+  font-style: italic;
+}
+
+#top-cemeteries-list li:not(.muted):hover {
+  background: var(--surface2);
+}
+
+#top-cemeteries-list li::before {
+  counter-increment: cem;
+  content: counter(cem);
+  flex: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+}
+
+#top-cemeteries-list li.muted::before { content: ''; }
+
+#top-cemeteries-list .cem-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#top-cemeteries-list .cem-acres {
+  flex: 0 0 auto;
+  color: var(--green-light);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  font-weight: 500;
+}
+
 /* ── Info Panel ───────────────────────────────────────────── */
 #info-panel {
   border-bottom: 1px solid var(--border);

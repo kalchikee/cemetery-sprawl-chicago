@@ -136,7 +136,10 @@ Promise.all([
           { sticky: true, className: 'tract-tooltip' }
         );
       },
-    });
+    }).addTo(map);
+    raceLayer.bringToBack();
+    if (cemeteryLayer) cemeteryLayer.bringToFront();
+    document.getElementById('legend').classList.add('visible');
   })
   .catch(e => console.warn('Census tracts not loaded:', e));
 
@@ -183,6 +186,38 @@ fetch('data/cta_stations.geojson')
   .catch(e => console.warn('CTA stations not loaded:', e));
 
 /* ── Load Cemeteries ─────────────────────────────────────── */
+// Keep a handle to each cemetery's Leaflet sublayer so the sidebar's
+// Largest-Cemeteries list can pan/zoom/highlight a specific feature.
+const cemeterySublayers = [];
+
+function focusCemetery(sublayer) {
+  if (!sublayer) return;
+  const bounds = sublayer.getBounds();
+  if (bounds.isValid()) map.fitBounds(bounds, { padding: [80, 80], maxZoom: 15 });
+  showCemeteryInfo(sublayer.feature.properties);
+  sublayer.openTooltip && sublayer.openTooltip();
+}
+
+function renderTopCemeteries(features) {
+  const list = document.getElementById('top-cemeteries-list');
+  if (!list) return;
+  const top = features
+    .map((f, i) => ({ f, i, acres: f.properties.area_acres || 0 }))
+    .sort((a, b) => b.acres - a.acres)
+    .slice(0, 10);
+
+  list.innerHTML = '';
+  for (const { f, i, acres } of top) {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="cem-name">${f.properties.name || 'Unnamed Cemetery'}</span>
+      <span class="cem-acres">${fmt(acres, 1)} ac</span>
+    `;
+    li.addEventListener('click', () => focusCemetery(cemeterySublayers[i]));
+    list.appendChild(li);
+  }
+}
+
 fetch('data/cemeteries.geojson')
   .then(r => r.json())
   .then(data => {
@@ -192,13 +227,13 @@ fetch('data/cemeteries.geojson')
     cemeteryLayer = L.geoJSON(data, {
       style: feature => {
         const acres = feature.properties.area_acres || 0;
-        // Scale opacity / darkness by size
-        const opacity = Math.min(0.9, 0.55 + acres / 400);
+        // Bigger parcels look more solid; floor keeps small ones legible on the dark basemap.
+        const opacity = Math.min(0.95, 0.75 + acres / 600);
         return {
-          fillColor: '#2d6a4f',
+          fillColor: '#74c69d',
           fillOpacity: opacity,
-          color: '#52b788',
-          weight: 1.2,
+          color: '#b7e4c7',
+          weight: 1.4,
         };
       },
       onEachFeature: (feature, layer) => {
@@ -206,8 +241,12 @@ fetch('data/cemeteries.geojson')
         const name = p.name || 'Unnamed Cemetery';
         layer.bindTooltip(`<b>${name}</b><br>${fmt(p.area_acres, 1)} acres`, { sticky: true });
         layer.on('click', () => showCemeteryInfo(p));
+        // Match sublayer order to feature order so the top-N list can index into it.
+        cemeterySublayers.push(layer);
       },
     }).addTo(map);
+
+    renderTopCemeteries(features);
 
     // Fit to cemetery bounds on load
     if (features.length) {
