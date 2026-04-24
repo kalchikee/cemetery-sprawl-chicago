@@ -79,10 +79,46 @@ function updateStats(features) {
 }
 
 /* ── Load Census Racial Composition ─────────────────────── */
-fetch('data/census_tracts.geojson')
-  .then(r => r.json())
-  .then(data => {
-    raceLayer = L.geoJSON(data, {
+// The tract geometries and the race stats live in separate files
+// (census_tracts.geojson + census_race.csv) and must be joined by GEOID
+// before the choropleth has anything to color.
+Promise.all([
+  fetch('data/census_tracts.geojson').then(r => r.json()),
+  fetch('data/census_race.csv').then(r => r.text()),
+])
+  .then(([geo, csv]) => {
+    const lines = csv.trim().split(/\r?\n/);
+    const header = lines.shift().split(',');
+    const idx = {
+      GEOID: header.indexOf('GEOID'),
+      total_pop: header.indexOf('total_pop'),
+      pct_white: header.indexOf('pct_white'),
+      pct_black: header.indexOf('pct_black'),
+      pct_hispanic: header.indexOf('pct_hispanic'),
+    };
+    const byGeoid = new Map();
+    for (const line of lines) {
+      const cols = line.split(',');
+      const geoid = cols[idx.GEOID];
+      if (!geoid) continue;
+      const num = i => {
+        const v = parseFloat(cols[i]);
+        return Number.isFinite(v) ? v : null;
+      };
+      byGeoid.set(geoid, {
+        total_pop: num(idx.total_pop),
+        pct_white: num(idx.pct_white),
+        pct_black: num(idx.pct_black),
+        pct_hispanic: num(idx.pct_hispanic),
+      });
+    }
+
+    for (const f of geo.features) {
+      const stats = byGeoid.get(f.properties.GEOID);
+      if (stats) Object.assign(f.properties, stats);
+    }
+
+    raceLayer = L.geoJSON(geo, {
       style: feature => ({
         fillColor: raceColor(feature.properties.pct_black),
         fillOpacity: 0.55,
@@ -101,7 +137,6 @@ fetch('data/census_tracts.geojson')
         );
       },
     });
-    document.getElementById('legend').classList.add('visible');
   })
   .catch(e => console.warn('Census tracts not loaded:', e));
 
